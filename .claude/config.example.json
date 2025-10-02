@@ -1,0 +1,25 @@
+s
+{
+  "mcpServers": {
+    "scylladb": {
+      "command": "python3",
+      "args": ["./src/scylladb_mcp_server.py"],
+      "env": {
+        "// Docker Mode (default)": "",
+        "SCYLLA_IS_DOCKER": "false",
+        
+        "// ScyllaDB Cloud Mode - uncomment and fill in": "",
+        "// SCYLLA_IS_DOCKER": "false",
+        "// SCYLLA_HOST": "node-0.aws-us-east-1.a17dfa2542149ef7642e.clusters.scylla.cloud",
+        "// SCYLLA_USERNAME": "scylla",
+        "// SCYLLA_PASSWORD": "mfjVd0No5c3Opik",
+        "// SCYLLA_DC": "AWS_US_EAST_1",
+        
+        "// AWS DynamoDB for A/B testing - optional": "",
+        "// AWS_REGION": "us-east-1",
+        "// AWS_ACCESS_KEY_ID": "YOUR-AWS-ACCESS-KEY",
+        "// AWS_SECRET_ACCESS_KEY": "YOUR-AWS-SECRET-KEY"
+      }
+    }
+  }
+}
