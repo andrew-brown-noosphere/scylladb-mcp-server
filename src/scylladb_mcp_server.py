@@ -27,6 +27,7 @@ from mcp.types import Tool
 from technical_advisor import TechnicalAdvisor, technical_response
 from query_analyzer import DynamoDBQueryAnalyzer
 from scylladb_advisor import ScyllaDBAdvisor
+from advanced_cost_calculator import calculate_advanced_cost
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -415,6 +416,18 @@ class ScyllaDBMCPServer:
                                    workload_pattern: str = None,
                                    provisioned_capacity: bool = None) -> str:
         """Calculate costs with workload-specific analysis."""
+        
+        # Try advanced calculator first
+        try:
+            return calculate_advanced_cost(
+                reads_per_sec=reads_per_sec,
+                writes_per_sec=writes_per_sec,
+                storage_gb=storage_gb,
+                item_size_kb=item_size_kb,
+                pattern=workload_pattern or 'steady'
+            )
+        except Exception as e:
+            logger.warning(f"Advanced calculator failed: {e}, falling back to simple calculator")
         
         # Determine workload pattern if not specified
         if not workload_pattern:

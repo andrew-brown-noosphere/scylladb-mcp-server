@@ -27,6 +27,10 @@ from mcp.types import Tool, TextContent
 from technical_advisor import TechnicalAdvisor, technical_response
 from query_analyzer import DynamoDBQueryAnalyzer
 from scylladb_advisor import ScyllaDBAdvisor
+try:
+    from advanced_cost_calculator import calculate_advanced_cost
+except ImportError:
+    calculate_advanced_cost = None
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
