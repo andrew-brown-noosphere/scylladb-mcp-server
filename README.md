@@ -56,7 +56,7 @@ The server includes AWS's official DynamoDB sample application for analysis:
 
 - Python 3.8+ (3.11 recommended)
 - Docker Desktop (for local testing)
-- Claude Desktop with MCP support
+- Claude Desktop or Claude Code with MCP support
 - AWS credentials (for DynamoDB comparison)
 
 ### Installation
@@ -83,7 +83,7 @@ cp .env.example .env
 # - SCYLLA_ALTERNATOR_ENDPOINT (for ScyllaDB Cloud)
 ```
 
-4. Restart Claude Desktop
+4. Restart Claude Desktop or Claude Code
 
 ## Configuration
 
@@ -111,6 +111,35 @@ The setup script automatically configures Claude Desktop. For manual configurati
   }
 }
 ```
+
+### Claude Code Configuration
+
+For Claude Code users, you have two options:
+
+1. **Project-specific configuration** (recommended):
+   - Create a `.claude/config.json` file in your project root
+   - This keeps MCP configuration with your project
+
+```json
+{
+  "mcpServers": {
+    "scylladb": {
+      "command": "python3",
+      "args": ["./src/scylladb_mcp_server.py"],
+      "env": {
+        "SCYLLA_CONNECTION_MODE": "alternator",
+        "SCYLLA_ALTERNATOR_ENDPOINT": "http://your-endpoint:8000",
+        "AWS_ACCESS_KEY_ID": "your-key",
+        "AWS_SECRET_ACCESS_KEY": "your-secret"
+      }
+    }
+  }
+}
+```
+
+2. **Global configuration**:
+   - Use the same `claude_desktop_config.json` location as Claude Desktop
+   - Configuration will be available in all Claude Code sessions
 
 ### Connection Modes
 
@@ -143,6 +172,62 @@ To connect to AWS DynamoDB for A/B testing, add these environment variables to y
 
 For local DynamoDB testing, set `DYNAMODB_ENDPOINT` to your local DynamoDB URL (e.g., `http://localhost:8001`).
 
+## Connecting to ScyllaDB Cloud
+
+1. **Create a ScyllaDB Cloud Account**:
+   - Sign up at [cloud.scylladb.com](https://cloud.scylladb.com)
+   - Choose "DynamoDB API Compatible" when creating your cluster
+   - Enable "Allow Alternator API" in cluster settings
+
+2. **Get Connection Details**:
+   - Find your Alternator endpoint in the cluster dashboard (e.g., `http://node-0.aws-us-east-1.xxx.clusters.scylla.cloud:8000`)
+   - Generate API keys from the cluster settings
+   - Note: ScyllaDB uses AWS-compatible authentication
+
+3. **Test Connection**:
+   ```python
+   import boto3
+   
+   dynamodb = boto3.resource('dynamodb',
+       endpoint_url='http://your-endpoint:8000',
+       region_name='us-east-1',
+       aws_access_key_id='your-key',
+       aws_secret_access_key='your-secret'
+   )
+   
+   # List tables to verify connection
+   print(list(dynamodb.tables.all()))
+   ```
+
+## Connecting to AWS DynamoDB
+
+1. **Set up AWS Account**:
+   - Create an AWS account if you don't have one
+   - Navigate to IAM console
+
+2. **Create Access Keys**:
+   - Go to IAM → Users → Add User
+   - Select "Programmatic access"
+   - Attach policy: `AmazonDynamoDBFullAccess`
+   - Save the Access Key ID and Secret Access Key
+
+3. **Configure Region**:
+   - Choose your preferred AWS region (e.g., `us-east-1`)
+   - DynamoDB is available in all AWS regions
+
+4. **Test Connection**:
+   ```python
+   import boto3
+   
+   # For real AWS DynamoDB (no endpoint_url needed)
+   dynamodb = boto3.resource('dynamodb',
+       region_name='us-east-1'
+   )
+   
+   # List tables
+   print(list(dynamodb.tables.all()))
+   ```
+
 ## Usage Examples
 
 ### Live A/B Testing
@@ -174,6 +259,18 @@ response = table.transact_write_items(
 
 ## Running Demo Scripts
 
+Before running demos, ensure your environment variables are set:
+```bash
+# For ScyllaDB Cloud
+export SCYLLA_ALTERNATOR_ENDPOINT="http://your-node.clusters.scylla.cloud:8000"
+export AWS_ACCESS_KEY_ID="your-scylla-key"
+export AWS_SECRET_ACCESS_KEY="your-scylla-secret"
+
+# For AWS DynamoDB (in addition to above)
+export AWS_REGION="us-east-1"
+# Leave DYNAMODB_ENDPOINT empty for real AWS, or set to local endpoint
+```
+
 ### Quick Performance Test
 ```bash
 python3 src/quick_demo.py
@@ -191,6 +288,30 @@ Demonstrates identical code running on both platforms with performance metrics.
 python3 src/ycsb_benchmark.py
 ```
 Runs industry-standard benchmarks showing ~29% better P99 latency.
+
+### IoT Sensor Data Demo
+```bash
+# Run comparison between both platforms
+python3 src/demo_iot_sensors.py
+
+# Run only on ScyllaDB
+python3 src/demo_iot_sensors.py scylla
+
+# Run only on DynamoDB
+python3 src/demo_iot_sensors.py dynamo
+```
+Simulates high-volume IoT sensor data ingestion.
+
+### E-commerce Platform Demo
+```bash
+# Run comparison
+python3 src/demo_ecommerce.py
+
+# Single platform testing
+python3 src/demo_ecommerce.py scylla
+python3 src/demo_ecommerce.py dynamo
+```
+Demonstrates shopping cart, inventory, and order processing patterns.
 
 ### Cost Calculator Test
 ```bash
