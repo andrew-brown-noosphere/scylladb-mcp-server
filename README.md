@@ -1,24 +1,63 @@
 # ScyllaDB MCP Server
 
-A Model Context Protocol (MCP) server for ScyllaDB featuring a technical engineering advisor. Helps developers migrate from DynamoDB with honest analysis about costs, performance, and architectural decisions.
+A Model Context Protocol (MCP) server for ScyllaDB featuring a technical engineering advisor. Enables live A/B testing between DynamoDB and ScyllaDB with honest analysis about costs, performance, and architectural decisions.
 
 ## Features
 
-- 🎭 **Technical Engineering Voice** - Direct analysis, no marketing
-- 🐳 **Zero-Friction Docker Setup** - Auto-manages local ScyllaDB container
-- 💰 **Workload-Specific Cost Analysis** - Real pricing calculations
-- 🚀 **Benchmark-Backed Performance Claims** - Data from scylladb.com
-- 🔍 **DynamoDB Compatibility Checking** - Via Alternator API
-- 📊 **Pattern Detection** - Identifies hot partitions, GSI proliferation
+- 🎭 **Technical Engineering Voice** - Direct analysis, no marketing fluff
+- ☁️ **Multi-Cloud Support** - ScyllaDB Cloud, AWS DynamoDB, and local Docker
+- 💰 **Advanced Cost Calculator** - Matches official ScyllaDB calculator with workload profiles
+- 🚀 **Live A/B Testing** - Real-time performance comparison between platforms
+- 🔍 **DynamoDB Code Analysis** - Pattern detection and migration assessment
+- 📊 **Workload Templates** - Discord-scale, AdTech, FinTech, and more
 - 🛠️ **Migration Complexity Assessment** - Honest effort estimates
+
+## Supported Connections
+
+### 1. ScyllaDB Cloud
+Connect to managed ScyllaDB instances with full CQL and Alternator (DynamoDB API) support.
+
+### 2. AWS DynamoDB
+Native DynamoDB connections for live A/B testing and cost comparison.
+
+### 3. Local Docker
+Auto-provisions ScyllaDB containers for development and testing.
+
+## Demo Applications
+
+The MCP server includes several demo applications for real-world testing:
+
+### Performance Benchmarks
+- **`quick_demo.py`** - Connection speed comparison (ScyllaDB vs DynamoDB)
+- **`simple_ab_demo.py`** - Side-by-side write performance test
+- **`live_ab_test.py`** - Comprehensive performance comparison with metrics
+- **`ycsb_benchmark.py`** - Industry-standard YCSB workload testing
+
+### Cost Analysis Tools
+- **`test_mcp_server.py`** - Test the advisor with real workload scenarios
+- **Advanced Calculator** - Matches ScyllaDB's official pricing calculator
+- **Workload Templates** - Pre-configured profiles for common applications
+
+### DynamoDB Analysis
+The server includes AWS's official DynamoDB sample application for analysis:
+- **Source**: Based on AWS's DynamoDB online shop example
+- **Location**: `test/dynamodb_online_shop_example.py`
+- **Purpose**: Analyze real DynamoDB patterns from AWS's own code
+- **Features**:
+  - Query pattern inspection
+  - Access pattern analysis
+  - Hot partition detection
+  - GSI proliferation identification
+  - Migration complexity assessment
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.8+
-- Docker Desktop (running)
+- Python 3.8+ (3.11 recommended)
+- Docker Desktop (for local testing)
 - Claude Desktop with MCP support
+- AWS credentials (for DynamoDB comparison)
 
 ### Installation
 
@@ -28,129 +67,212 @@ git clone https://github.com/scylladb/scylladb-mcp-server.git
 cd scylladb-mcp-server
 ```
 
-2. Install Python dependencies:
+2. Run the setup script:
 ```bash
-# Create virtual environment (recommended)
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install requirements
-pip install -r src/requirements.txt
+./setup.sh
 ```
 
-3. Configure Claude Desktop by editing the config file:
+3. Configure your environment:
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env with your credentials:
+# - AWS_ACCESS_KEY_ID
+# - AWS_SECRET_ACCESS_KEY
+# - SCYLLA_ALTERNATOR_ENDPOINT (for ScyllaDB Cloud)
+```
+
+4. Restart Claude Desktop
+
+## Configuration
+
+### Claude Desktop Configuration
+
+The setup script automatically configures Claude Desktop. For manual configuration:
 
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`  
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
 **Linux**: `~/.config/Claude/claude_desktop_config.json`
-
-Add the ScyllaDB MCP server configuration:
 
 ```json
 {
   "mcpServers": {
     "scylladb": {
       "command": "python3",
-      "args": ["/absolute/path/to/scylladb-mcp-server/src/scylladb_mcp_server.py"],
+      "args": ["/path/to/scylladb-mcp-server/src/scylladb_mcp_server.py"],
       "env": {
-        "SCYLLA_IS_DOCKER": "true"
+        "SCYLLA_CONNECTION_MODE": "alternator",
+        "SCYLLA_ALTERNATOR_ENDPOINT": "http://your-endpoint:8000",
+        "AWS_ACCESS_KEY_ID": "your-key",
+        "AWS_SECRET_ACCESS_KEY": "your-secret"
       }
     }
   }
 }
 ```
 
-4. Restart Claude Desktop
+### Connection Modes
+
+- **`docker`** - Local ScyllaDB container (default)
+- **`cloud`** - ScyllaDB Cloud with CQL
+- **`alternator`** - ScyllaDB or DynamoDB via Alternator API
+
+### DynamoDB Configuration
+
+To connect to AWS DynamoDB for A/B testing, add these environment variables to your configuration:
+
+```json
+{
+  "mcpServers": {
+    "scylladb": {
+      "command": "python3",
+      "args": ["/path/to/scylladb-mcp-server/src/scylladb_mcp_server.py"],
+      "env": {
+        "SCYLLA_CONNECTION_MODE": "alternator",
+        "SCYLLA_ALTERNATOR_ENDPOINT": "http://your-scylla-endpoint:8000",
+        "AWS_ACCESS_KEY_ID": "your-aws-key",
+        "AWS_SECRET_ACCESS_KEY": "your-aws-secret",
+        "AWS_REGION": "us-east-1",
+        "DYNAMODB_ENDPOINT": ""  // Leave empty for real AWS DynamoDB
+      }
+    }
+  }
+}
+```
+
+For local DynamoDB testing, set `DYNAMODB_ENDPOINT` to your local DynamoDB URL (e.g., `http://localhost:8001`).
 
 ## Usage Examples
 
-### Connect to ScyllaDB
+### Live A/B Testing
 ```
-Connect to ScyllaDB
-```
-Automatically provisions and connects to a local ScyllaDB Docker container.
-
-### Cost Analysis
-```
-What would my DynamoDB workload cost on ScyllaDB?
-- 50,000 reads/sec
-- 10,000 writes/sec  
-- 5TB storage
+Compare performance between DynamoDB and ScyllaDB for 1000 write operations
 ```
 
-### Check Code Compatibility
+### Cost Analysis with Real Workloads
+```
+Calculate costs for a FinTech platform processing 50,000 transactions/second
+```
+
+### Analyze Existing DynamoDB Code
+```
+Analyze the DynamoDB patterns in test/dynamodb_online_shop_example.py
+```
+
+### Migration Assessment
 ```python
 Check if this DynamoDB code will work with ScyllaDB:
 
-table.query(
-    IndexName='GSI1',
-    KeyConditionExpression='GSI1PK = :pk',
-    ExpressionAttributeValues={':pk': 'CATEGORY#featured'}
+response = table.transact_write_items(
+    TransactItems=[
+        {'Put': {'TableName': 'Orders', 'Item': order}},
+        {'Update': {'TableName': 'Inventory', 'Key': {'id': item_id}}}
+    ]
 )
 ```
 
-### Analyze Workload
+## Running Demo Scripts
+
+### Quick Performance Test
+```bash
+python3 src/quick_demo.py
 ```
-Analyze my DynamoDB code in ./src for ScyllaDB migration
+Shows connection latency differences between platforms.
+
+### A/B Write Performance
+```bash
+python3 src/simple_ab_demo.py
 ```
+Demonstrates identical code running on both platforms with performance metrics.
+
+### Full YCSB Benchmark
+```bash
+python3 src/ycsb_benchmark.py
+```
+Runs industry-standard benchmarks showing ~29% better P99 latency.
+
+### Cost Calculator Test
+```bash
+python3 src/test_mcp_server.py
+```
+Tests the advisor with various workload scenarios and cost calculations.
 
 ## Available MCP Tools
 
-- **connect** - Connect to ScyllaDB (auto-provisions Docker if needed)
-- **costEstimate** - Compare costs between DynamoDB and ScyllaDB
+- **connect** - Connect to ScyllaDB/DynamoDB (supports all modes)
+- **costEstimate** - Advanced cost comparison with workload templates
 - **checkMigration** - Validate DynamoDB code compatibility
 - **analyzeWorkload** - Deep analysis of DynamoDB patterns
-- **comparePerformance** - Show benchmark comparisons
+- **comparePerformance** - Live A/B testing between platforms
 - **populateData** - Create test data with realistic patterns
-- **analyzeDynamoDBModel** - Analyze AWS data models
+- **analyzeDynamoDBModel** - Analyze AWS data models and access patterns
+
+## Workload Templates
+
+Pre-configured profiles for accurate cost analysis:
+
+- **Discord-scale messaging** - 50K-200K ops/sec
+- **AdTech RTB** - Sub-10ms latency requirements
+- **Cybersecurity analytics** - Write-heavy, 100K-500K ops/sec
+- **FinTech platform** - Payment processing scale
+- **Growing e-commerce** - $100M+ revenue scale
 
 ## Project Structure
 
 ```
 scylladb-mcp-server/
 ├── src/
-│   ├── scylladb_mcp_server.py   # Main MCP server
-│   ├── technical_advisor.py      # Technical analysis voice
-│   ├── query_analyzer.py         # DynamoDB pattern analysis
-│   ├── scylladb_advisor.py       # ScyllaDB-specific insights
-│   └── requirements.txt          # Python dependencies
+│   ├── scylladb_mcp_server.py      # Main MCP server
+│   ├── technical_advisor.py         # Engineering analysis engine
+│   ├── advanced_cost_calculator.py  # Matches official calculator
+│   ├── workload_templates.py        # Real-world profiles
+│   ├── query_analyzer.py            # DynamoDB pattern analysis
+│   ├── quick_demo.py               # Performance demos
+│   ├── simple_ab_demo.py           # A/B testing demo
+│   ├── live_ab_test.py             # Advanced comparison
+│   ├── ycsb_benchmark.py           # YCSB implementation
+│   └── requirements.txt            # Python dependencies
 ├── test/
-│   └── dynamodb_online_shop_example.py  # AWS example code
+│   └── dynamodb_online_shop_example.py  # AWS sample for analysis
 ├── docs/
-│   └── SYSTEMS_DESIGN_CONTEXT.md  # Architecture philosophy
-├── demo_scenarios.md             # Demo walkthrough scripts
-└── README.md                     # This file
+│   └── SYSTEMS_DESIGN_CONTEXT.md   # Architecture philosophy
+├── .env.example                    # Environment template
+├── setup.sh                        # Automated setup
+└── README.md                       # This file
 ```
 
-## Technical Notes
+## Key Results
 
-- **Pattern Detection**: Static code analysis identifies common anti-patterns
-- **Cost Estimates**: Based on current AWS pricing and typical EC2 costs
-- **Performance Data**: From published ScyllaDB benchmarks
-- **Compatibility**: Uses Alternator (DynamoDB-compatible API)
+Based on real benchmarks and customer data:
 
-## The Technical Philosophy
+- **Cost Reduction**: 86-99% depending on workload
+- **P99 Latency**: ~29% better under load
+- **No Throttling**: Hardware limits only
+- **Same API**: Drop-in replacement via Alternator
 
-Every response provides engineering analysis:
-- "Thread-per-core eliminates lock contention"
-- "GSIs multiply write costs by (N+1)"
-- "Hardware limits, not artificial throttling"
+## Technical Philosophy
 
-No marketing. Just technical reality.
+Every response is backed by:
+- Actual benchmarks from scylladb.com
+- Real customer workloads (Discord, Palo Alto Networks, Comcast)
+- Transparent architecture explanations
+- No marketing claims without data
 
 ## Contributing
 
 PRs welcome for:
-- Additional cost analysis patterns
-- More pattern detection rules
+- Additional workload templates
+- More DynamoDB pattern detection
 - Real migration case studies
 - Performance benchmark updates
 
 ## License
 
-Apache 2.0
+[TBD]
 
 ## Support
 
 - ScyllaDB Docs: [docs.scylladb.com](https://docs.scylladb.com)
 - ScyllaDB University: [university.scylladb.com](https://university.scylladb.com)
+- DynamoDB Migration Guide: [scylladb.com/dynamodb](https://scylladb.com/dynamodb)

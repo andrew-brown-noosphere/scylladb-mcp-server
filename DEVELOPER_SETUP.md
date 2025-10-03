@@ -153,7 +153,7 @@ SCYLLA_CQL_PORT=9042
 SCYLLA_ALTERNATOR_PORT=8000
 ```
 
-## Key Talking Points
+## Key Benefits
 
 1. **Mechanical Sympathy**: Thread-per-core, no locks, hardware-aware
 2. **No Artificial Limits**: Use all your hardware, no throttling
